@@ -7,3 +7,9 @@ tolset/license.txt
 *.bin
 *.lst
 *.sys
+*.gas
+*.hrb
+*.bim
+*.obj
+*.map
+bootpack.nas
