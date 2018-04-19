@@ -4,3 +4,5 @@ tolset/LGPL.txt
 tolset/license.txt
 
 *.img
+*.bin
+*.lst
