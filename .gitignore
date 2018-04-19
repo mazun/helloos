@@ -6,3 +6,4 @@ tolset/license.txt
 *.img
 *.bin
 *.lst
+*.sys
