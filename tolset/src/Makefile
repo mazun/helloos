@@ -15,23 +15,16 @@ IMGTOL = $(TOOLPATH)imgtol.com
 COPY = copy
 DEL = del
 
-default:
-	$(MAKE) img
+# *.obj files depending on *.c
+OBJS = bootpack.obj dsctbl.obj graphic.obj int.obj
+
+default: img
 
 ipl10.bin: ipl10.nas Makefile
 	$(NASK) ipl10.nas ipl10.bin ipl10.lst
 
 asmhead.bin: asmhead.nas Makefile
 	$(NASK) asmhead.nas asmhead.bin asmhead.lst
-
-bootpack.gas: bootpack.c Makefile
-	$(CC1) -o bootpack.gas bootpack.c
-
-bootpack.nas: bootpack.gas Makefile
-	$(GAS2NASK) bootpack.gas bootpack.nas
-
-bootpack.obj: bootpack.nas Makefile
-	$(NASK) bootpack.nas bootpack.obj bootpack.lst
 
 naskfunc.obj: naskfunc.nas Makefile
 	$(NASK) naskfunc.nas naskfunc.obj naskfunc.lst
@@ -42,9 +35,9 @@ hankaku.bin: hankaku.txt Makefile
 hankaku.obj: hankaku.bin Makefile
 	$(BIN2OBJ) hankaku.bin hankaku.obj _hankaku
 
-bootpack.bim: bootpack.obj naskfunc.obj hankaku.obj Makefile
+bootpack.bim: $(OBJS) naskfunc.obj hankaku.obj Makefile
 	$(OBJ2BIM) @$(RULEFILE) out:bootpack.bim stack:3136k map:bootpack.map \
-		bootpack.obj naskfunc.obj hankaku.obj
+		$(OBJS) naskfunc.obj hankaku.obj
 
 bootpack.hrb: bootpack.bim Makefile
 	$(BIM2HRB) bootpack.bim bootpack.hrb 0
@@ -58,16 +51,22 @@ haribote.img: ipl10.bin haribote.sys Makefile
 		copy from:haribote.sys to:@: \
 		imgout:haribote.img
 
-img:
-	$(MAKE) haribote.img
+%.gas: %.c Makefile
+	$(CC1) -o $*.gas $*.c
 
-run:
-	$(MAKE) img
+%.nas: %.gas Makefile
+	$(GAS2NASK) $*.gas $*.nas
+
+%.obj: %.nas Makefile
+	$(NASK) $*.nas $*.obj $*.lst
+
+img: haribote.img
+
+run: img
 	$(COPY) haribote.img ..\z_tools\qemu\fdimage0.bin
 	$(MAKE) -C ../z_tools/qemu
 
-install:
-	$(MAKE) img
+install: img
 	$(IMGTOL) w a: haribote.img
 
 clean:
@@ -82,6 +81,5 @@ clean:
 	-$(DEL) bootpack.sys
 	-$(DEL) haribote.sys
 
-src_only:
-	$(MAKE) clean
+src_only: clean
 	-$(DEL) haribote.img
